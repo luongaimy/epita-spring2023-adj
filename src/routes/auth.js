@@ -10,6 +10,8 @@ const user = require('../models/user');
 Router.post('/register', async (request, response) => {
     const {email, email_cfg, password, password_cfg, username, active} = request.body;
 
+    // Format ....
+    
     const hash = await bcrypt.hash(password, saltRounds);
 
     const user = new UserModel({
@@ -26,20 +28,17 @@ Router.post('/register', async (request, response) => {
         return response.status(200).json({
             "user": user
         });
-
     } catch (error) {
         return response.status(500).json({
             "error": error.message
         });
     }
-
 });
 
 Router.post('/login', async (request, response) => {
     const {email, password} = request.body;
 
     try {
-        
         let user = await UserModel.findOne({
             email,
             active: true

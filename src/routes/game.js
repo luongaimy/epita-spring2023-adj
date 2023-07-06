@@ -57,10 +57,18 @@ Router.get('/:id', async (request, response) => {
     }
 })
 
-Router.post('/verif', isLogged, (request, response) => {
+Router.post('/verif', isLogged, async (request, response) => {
     // get the value from the user
+    const { word, gameId } = request.body;
+    try {
+    // Attempt to find the game in the database
+        const game = await GameModel.findOne({ _id: gameId }).populate("word");
 
-    // ge the value searched by getting the game
+        // If the game could not be found, return an error message
+        if (!game) {
+            return response.status(404).json({ msg: "Game not found" });
+    }
+    // get the value searched by getting the game
 
     // make the verification
 
