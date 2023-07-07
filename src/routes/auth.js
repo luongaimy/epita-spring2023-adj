@@ -7,6 +7,8 @@ const saltRounds = 10;
 const UserModel = require('../models/user');
 const user = require('../models/user');
 
+const { generateAccessToken, generateRefreshToken } = require('../tools');
+
 Router.post('/register', async (request, response) => {
     const {email, email_cfg, password, password_cfg, username, active} = request.body;
 
@@ -48,9 +50,18 @@ Router.post('/login', async (request, response) => {
             let verif = await bcrypt.compare(password, user.password);
 
             if (verif) {
-                request.session.user = user;
+                // request.session.user = user;
+
+                const accessToken = generateAccessToken(user._id)
+                const refeshToken = generateRefreshToken(user._id)
+
+                response.cookie('refreshtoken', refeshToken, {
+                    httpOnly: true,
+                    maxAge: 30*24*60*60*1000
+                });
 
                 return response.status(200).json({
+                    "accessToken": accessToken,
                     "user": user
                 });
             }
@@ -72,5 +83,30 @@ Router.get('/me', (request, response) => {
         "user": request.session.user
     });
 })
+
+Router.get('/refresh-token', async (request, response) => {
+    try {
+        const rf_token = request.cookies.refreshtoken
+
+        if (!rf_token) return response.status(503).json({ msg: "Not authenticated !" });
+
+        const decoded = jwt.verify(rf_token, `secret`)
+
+        if (!decoded) return response.status(503).json({ msg: "Not authenticated !" })
+
+        const user = await UserModel.findById(decoded.id)
+
+        if (!user) return response.status(503).json({ msg: "Not authenticated !" })
+
+        const token = generateAccessToken(user._id)
+
+        return response.status(200).json({
+            token,
+            user
+        })
+    } catch (error) {
+        return response.status(503).json({"msg": "Not authenticated !"});
+    }
+});
 
 module.exports = Router;
