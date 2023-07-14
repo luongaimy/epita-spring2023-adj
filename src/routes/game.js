@@ -1,6 +1,7 @@
 const express = require('express');
 const WordModel = require('../models/word');
 const GameModel = require("../models/game");
+const TryModel = require('../models/try');
 
 const Router = express.Router();
 
@@ -97,10 +98,27 @@ Router.post('/verif', isLogged, async (request, response) => {
             });
         }
 
-        return response.status(500).json({
+        // Create a new try
+        const newTry = new TryModel({
+            word: lowerCaseWord,
+            result: responseWord
+        });
+
+        await newTry.save(); // Save the try to the database
+
+        // Add the new try to the game
+        game.tries.push(newTry._id);
+        await game.save();
+
+        // Fetch the updated game with populated tries
+        const newGame = await GameModel.findOne({ _id: gameId }).populate("word").populate("tries");
+
+        const statusCode = search === lowerCaseWord ? 200 : 500;
+
+        return response.status(statusCode).json({
             "word": lowerCaseWord,
             "response": responseWord,
-            "game": game
+            "game": newGame
         });
 
     } catch (error) {
