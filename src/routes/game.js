@@ -70,7 +70,7 @@ Router.post('/verif', isLogged, async (request, response) => {
         }
 
         // get the value searched by getting the game
-        const search = game.word.name;
+        const search = game.word.name.toLowerCase();
 
         if (typeof request.body.word === 'undefined') {
             return response.status(500).json({
@@ -78,14 +78,29 @@ Router.post('/verif', isLogged, async (request, response) => {
             });
         }
 
-        if (request.body.word === search) {
-            return response.status(200).json({
-                "result": "You find the word !"
+        const lowerCaseWord = word.toLowerCase();
+        // make the verification
+        let responseWord = '';
+        if (search.length === lowerCaseWord.length) {
+            for (let i = 0; i < search.length; i++) {
+                if (lowerCaseWord[i] === search[i]) {
+                    responseWord += '1';
+                } else if (search.includes(lowerCaseWord[i])) {
+                    responseWord += '0';
+                } else {
+                    responseWord += 'x';
+                }
+            }
+        } else {
+            return response.status(500).json({
+                "msg": "The word length must be " + search.length.toString()
             });
         }
 
         return response.status(500).json({
-            "result": "You don't find the word !"
+            "word": lowerCaseWord,
+            "response": responseWord,
+            "game": game
         });
 
     } catch (error) {
