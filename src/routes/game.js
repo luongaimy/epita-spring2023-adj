@@ -70,11 +70,7 @@ Router.post('/verif', isLogged, async (request, response) => {
         }
 
         // get the value searched by getting the game
-
-        // make the verification
-
-        // send the result
-
+        const search = game.word.name;
 
         if (typeof request.body.word === 'undefined') {
             return response.status(500).json({
