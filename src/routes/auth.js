@@ -13,7 +13,7 @@ Router.post('/register', async (request, response) => {
     const {email, email_cfg, password, password_cfg, username, active} = request.body;
 
     // Format ....
-    
+
     const hash = await bcrypt.hash(password, saltRounds);
 
     const user = new UserModel({
@@ -24,7 +24,7 @@ Router.post('/register', async (request, response) => {
     });
 
     try {
-        
+
         await user.save();
 
         return response.status(200).json({
@@ -50,7 +50,7 @@ Router.post('/login', async (request, response) => {
             let verif = await bcrypt.compare(password, user.password);
 
             if (verif) {
-                // request.session.user = user;
+                request.session.user = user;
 
                 const accessToken = generateAccessToken(user._id)
                 const refeshToken = generateRefreshToken(user._id)
@@ -68,7 +68,7 @@ Router.post('/login', async (request, response) => {
         }
 
         return response.status(500).json({
-            "error": "User not authenticated !"
+            "error":  "User not authenticated !"
         });
     } catch (error) {
         return response.status(500).json({

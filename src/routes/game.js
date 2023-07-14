@@ -9,13 +9,13 @@ const isLogged = (request, response, next) => {
         console.log('test');
         next();
     } else {
-        return response.status(500).json({'msg': "not logged !"})
+        return response.status(500).json({ 'msg': "not logged !" })
     }
 }
 
 Router.post('/', async (request, response) => {
     const word = await WordModel.aggregate([{
-        $sample: {size: 1}
+        $sample: { size: 1 }
     }]);
 
     let game = new GameModel({
@@ -42,10 +42,10 @@ Router.post('/', async (request, response) => {
 });
 
 Router.get('/:id', async (request, response) => {
-    const {id} = request.params;
+    const { id } = request.params;
 
     try {
-        const game = await GameModel.findOne({_id: id});
+        const game = await GameModel.findOne({ _id: id });
 
         return response.status(200).json({
             "msg": game
@@ -61,35 +61,42 @@ Router.post('/verif', isLogged, async (request, response) => {
     // get the value from the user
     const { word, gameId } = request.body;
     try {
-    // Attempt to find the game in the database
+        // Attempt to find the game in the database
         const game = await GameModel.findOne({ _id: gameId }).populate("word");
 
         // If the game could not be found, return an error message
         if (!game) {
             return response.status(404).json({ msg: "Game not found" });
-    }
-    // get the value searched by getting the game
+        }
 
-    // make the verification
+        // get the value searched by getting the game
 
-    // send the result
+        // make the verification
+
+        // send the result
 
 
-    if (typeof request.body.word === 'undefined') {
+        if (typeof request.body.word === 'undefined') {
+            return response.status(500).json({
+                "msg": "You have to send 'word' value"
+            });
+        }
+
+        if (request.body.word === search) {
+            return response.status(200).json({
+                "result": "You find the word !"
+            });
+        }
+
         return response.status(500).json({
-            "msg": "You have to send 'word' value"
+            "result": "You don't find the word !"
+        });
+
+    } catch (error) {
+        return response.status(500).json({
+            "error": error.message
         });
     }
-
-    if (request.body.word === search) {
-        return response.status(200).json({
-            "result": "You find the word !"
-        });
-    }
-
-    return response.status(500).json({
-        "result": "You don't find the word !"
-    });
 })
 
 module.exports = Router;
